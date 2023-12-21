@@ -7,7 +7,7 @@ import threading
 import subprocess
 import signal
 
-power = Keysight36311A("169.254.110.104")
+power = Keysight36311A("169.254.111.146")
 power.connect()
 
 clock = Keysight33600A("128.32.62.101")
@@ -54,7 +54,7 @@ def monitor_dut(voltage, frequency):
     end_time = time.time()
     current_arr = []
     while end_time - start_time < TIMEOUT:
-        utils.debug_print(end_time - start_time)
+        # utils.debug_print(end_time - start_time)
         retval = ser.read_all()
         if retval != "":
             # success datapoint
@@ -68,33 +68,45 @@ def monitor_dut(voltage, frequency):
             print("success: " + str(voltage) + "," + str(frequency) + "," + str(energy))
             return
         else:
-            current_arr.append(power.getPower(POWER_CHANNEL))
+            current_arr.append(power.getCurrent(POWER_CHANNEL))
             end_time = time.time()
-            time.sleep(1)
+            time.sleep(0.1)
     # failed
     log_file.write(str(voltage) + "," + str(frequency) + "," + str(-1) + "\n")
     log_file.flush()
+    return
     
 # Main Loop, sweep voltage and frequency
 if __name__ == "__main__":
-    os.system("bash ~/scratch/bora/scripts/openocd.sh")
-    time.sleep(1)
     for voltage in range(VOLTAGE_LOW, VOLTAGE_HIGH, VOLTAGE_STEP):
         for frequency in range(FREQUENCY_LOW, FREQUENCY_HIGH, FREQUENCY_STEP):
             power.setVoltageCurrent(voltage/1000, CURRENT, POWER_CHANNEL)
             clock.setFrequency(frequency*1000000, CLOCK_CHANNEL)
             utils.debug_print("Voltage: " + str(voltage) + "mV, Frequency: " + str(frequency) + "MHz")
+            openocd = subprocess.Popen("bash ~/scratch/bora/scripts/openocd.sh", shell=True)
+            time.sleep(1)
+            returncode = openocd.poll()
+            if returncode is not None:
+                print("openocd terminated with exit code: " + str(returncode))
+                log_file.write(str(voltage) + "," + str(frequency) + "," + str(-1) + "\n")
+                log_file.flush()
+                continue
             gdb = subprocess.Popen("bash ~/scratch/bora/scripts/program_dut.sh", shell=True)
+            time.sleep(1)
+            returncode = gdb.poll()
+            if returncode is not None:
+                print("gdb terminated with exit code: " + str(returncode))
+                log_file.write(str(voltage) + "," + str(frequency) + "," + str(-1) + "\n")
+                log_file.flush()
+                continue
             t = threading.Thread(target=monitor_dut, args=(voltage, frequency))
             t.start()
             t.join()
             time.sleep(3)
-            print("iteration completed")
+            # print("iteration completed")
             gdb.send_signal(signal.SIGINT)
-  
-            
-
-
-
-
-
+            subprocess.call("killall openocd", shell=True)
+            print("waiting for openocd to terminate")
+            openocd.send_signal(signal.SIGINT)
+            time.sleep(3)
+            # ser.baudrate = BASE_BAUD * (frequency / 10)
