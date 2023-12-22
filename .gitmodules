@@ -1,0 +1,3 @@
+[submodule "uart_gpio"]
+	path = uart_gpio
+	url = git@github.com:ucb-bar/esp32_uart_gpio.git
