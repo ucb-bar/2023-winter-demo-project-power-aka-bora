@@ -43,7 +43,8 @@ def monitor_dut(voltage, frequency):
             # success datapoint
             current_arr.append(power.getCurrent(POWER_CHANNEL))
             # compute energy used
-            energy = sum(current_arr)/100 * voltage
+            power_meas = sum(current_arr) / len(current_arr) * voltage / 1000
+            energy = power_meas * (end_time - start_time) * 1000
             # write to log csv by power source voltage, frequency, energy
             log_file.write(str(voltage) + "," + str(frequency) + "," + str(energy) + "\n")
             # save the write
@@ -95,6 +96,7 @@ if __name__ == "__main__":
         for frequency in range(FREQUENCY_LOW, FREQUENCY_HIGH+1, FREQUENCY_STEP):
             power.setVoltageCurrent(voltage/1000, CURRENT, POWER_CHANNEL)
             clock.setFrequency(frequency*1000000, CLOCK_CHANNEL)
+            ser.baudrate = BASE_BAUD * (frequency / 10)
             time.sleep(1)
             utils.debug_print("Voltage: " + str(voltage) + "mV, Frequency: " + str(frequency) + "MHz")
             openocd = subprocess.Popen("bash ~/scratch/bora/scripts/openocd.sh", shell=True)
@@ -128,4 +130,3 @@ if __name__ == "__main__":
             openocd.send_signal(signal.SIGINT)
             time.sleep(3)
             toggle_reset()
-            # ser.baudrate = BASE_BAUD * (frequency / 10)

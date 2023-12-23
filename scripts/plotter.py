@@ -61,7 +61,7 @@ def animatedshmoo(i):
     for i in range(len(voltage_range)):
         for j in range(len(frequency_range)):
             # Format to 2 decimal places
-            text = ax1.text(j, i, "{:.2f}".format(df.energy.to_numpy().reshape(len(voltage_range), len(frequency_range))[i, j]),
+            text = ax1.text(j, i, "{:.3f}".format(df.energy.to_numpy().reshape(len(voltage_range), len(frequency_range))[i, j]),
                         ha="center", va="center", color="w")
 
 log_file = find_latest_log()
