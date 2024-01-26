@@ -1,6 +1,6 @@
 #!/bin/bash
-BAREMETAL_IDE_PATH=~/scratch/Baremetal-IDE
-BORA_PATH=~/scratch/bora
+BAREMETAL_IDE_PATH=~/Desktop/scratch/Baremetal-IDE
+BORA_PATH=~/Desktop/scratch/bora
 CY_PATH=~/Desktop/chipyard
 GDB=${CY_PATH}/.conda-env/riscv-tools/bin/riscv64-unknown-elf-gdb
 

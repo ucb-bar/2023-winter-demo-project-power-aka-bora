@@ -1,6 +1,6 @@
 # A live plotting script that reads from the latest log,
 # and plots the data in real time.
-import seaborn as sns
+# import seaborn as sns
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -39,13 +39,18 @@ def animatedshmoo(i):
     frequency_range = np.arange(main.FREQUENCY_LOW, main.FREQUENCY_HIGH+1, main.FREQUENCY_STEP)
     df = df.reindex(pd.MultiIndex.from_product([voltage_range, frequency_range], names=["voltage", "frequency"]))
     df.reset_index(inplace=True)
-    df.fillna(0, inplace=True)
+
+    # df.fillna(0, inplace=True)
     # magic number, 0 = not tested yet, -1 = failed
     # paint the shmoo plot
     # sns.set()
     # sns.set_context("paper")
     # sns.set_style("whitegrid")
     # sns.set_palette("bright")
+
+    # convert df.energy to float
+    df.energy = df.energy.astype(float)
+
     ax1.imshow(df.energy.to_numpy().reshape(len(voltage_range), len(frequency_range)), interpolation='nearest', origin='lower')
     ax1.set_xticks(np.arange(len(frequency_range)))
     ax1.set_yticks(np.arange(len(voltage_range)))
@@ -54,6 +59,7 @@ def animatedshmoo(i):
     ax1.set_xlabel("Frequency (MHz)")
     ax1.set_ylabel("Voltage (mV)")
     ax1.set_title("Energy (mJ)")
+    ax1.set_facecolor((0.3, 0.3, 0.3))
 
     # Erase the previous text
     # ax1.texts.clear()
